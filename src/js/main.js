@@ -1,4 +1,5 @@
 import { radian } from './utils';
+import { SplitText } from './splitText';
 import * as THREE from "three";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
@@ -142,6 +143,11 @@ class Main {
 
   _initAnimation() {
     this.group.position.y = -this.viewport.height * 0.8;
+
+    const txts = document.querySelectorAll('.js-ttl-txts');
+    txts.forEach((txt) => {
+      new SplitText(txt);
+    });
   }
 
   _loadAnimation() {
@@ -151,6 +157,7 @@ class Main {
     // });
 
     const tlLoadAnimation = gsap.timeline();
+    // tlLoadAnimation.set('.js-ttl', {});
     tlLoadAnimation.to(this.group.position, {
       y: 0,
       duration: 2.4,
@@ -163,32 +170,32 @@ class Main {
     }, '<')
     .to('.js-ttl', {
       opacity: 1,
-      // delay: 0.2,
-    })
-    .to('.js-ttl-txts', {
+      duration: 0.1,
+    }, '1.6')
+    .to('.js-ttl-txts span', {
       y: 0,
-      // delay: 0.1,
-      duration: 0.6,
+      duration: 0.7,
       // ease: 'circ.inOut',
       ease: 'circ.out',
       stagger: 0.03,
       onComplete: () => {
         this.lenis.start();
       }
-    });
+    }, '1.6');
   }
 
   _scrollAnimation() {
     const tlScrollTtl = gsap.timeline({
       scrollTrigger: {
         trigger: '.js-section-02',
-        start: 'top 96%',
+        start: 'top 98%',
         onLeaveBack: () => tlScrollTtl.reverse(), // 逆再生させる
         // markers: true,
       }
     });
-    tlScrollTtl.to('.js-ttl-txts', {
-      duration: 0.9,
+    tlScrollTtl.to('.js-ttl-txts span', {
+      duration: 1.1,
+      stagger: 0.03,
       ease: 'circ.inOut',
       y: '-100%',
     })

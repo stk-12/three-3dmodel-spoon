@@ -59,7 +59,7 @@ canvas {
     height: 100vh;
   }
 
-  .section04 & {
+  .section05 & {
     height: 100vh;
   }
 }
@@ -76,7 +76,11 @@ canvas {
   &__txts {
     // line-height: 0.9;
     display: inline-block;
-    transform: translateY(100%);
+    
+    span {
+      display: inline-block;
+      transform: translateY(100%);
+    }
   }
 }
 
