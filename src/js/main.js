@@ -1,3 +1,4 @@
+import { radian } from './utils';
 import * as THREE from "three";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
@@ -5,7 +6,7 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { gsap } from "gsap";
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 
 import Lenis from '@studio-freight/lenis';
 
@@ -31,15 +32,20 @@ class Main {
     this.loader = new GLTFLoader();
     this.loader.setDRACOLoader(this.dracoLoader);
 
+    this.model = null;
     this.animations = null;
     this.mixer = null;
     this.clock = new THREE.Clock();
 
     this.scene = new THREE.Scene();
+    this.group = new THREE.Group();
+    this.groupChild = new THREE.Group();
+    this.scene.add(this.group);
+    this.group.add(this.groupChild);
     this.camera = null;
     this.mesh = null;
 
-    this.controls = null;
+    // this.controls = null;
 
     this.lenis = new Lenis({
       duration: 1.2,
@@ -62,10 +68,10 @@ class Main {
     this.scene.add(this.camera);
   }
 
-  _setControlls() {
-    this.controls = new OrbitControls(this.camera, this.canvas);
-    this.controls.enableDamping = true;
-  }
+  // _setControlls() {
+  //   this.controls = new OrbitControls(this.camera, this.canvas);
+  //   this.controls.enableDamping = true;
+  // }
 
   _setEnvTexture() {
     const rgbeLoader = new RGBELoader();
@@ -107,12 +113,17 @@ class Main {
         }
       });
 
-      model.scale.set(100.0, 100.0, 100.0);
+      // model.scale.set(100.0, 100.0, 100.0);
+      model.scale.set(this.viewport.width * 0.1, this.viewport.width * 0.1, this.viewport.width * 0.1);
 
-      this.scene.add(model);
+      this.model = model;
+
+      this.groupChild.add(this.model);
+
+      this._loadAnimation();
+      this._scrollAnimation();
+
       this._update();
-
-
     });
   }
 
@@ -124,15 +135,34 @@ class Main {
   //   this.scene.add(this.mesh);
   // }
 
+  _initAnimation() {
+    this.group.position.y = -this.viewport.height * 0.8;
+  }
+
   _loadAnimation() {
+
+    // gsap.set(this.model.rotation, {
+    //   y: radian(-120),
+    // });
+
     const tlLoadAnimation = gsap.timeline();
-    tlLoadAnimation.to('.js-ttl', {
+    tlLoadAnimation.to(this.group.position, {
+      y: 0,
+      duration: 2.4,
+      ease: 'power4.out',
+    })
+    .to(this.model.rotation, {
+      y: 0,
+      duration: 2.4,
+      ease: 'power4.out',
+    }, '<')
+    .to('.js-ttl', {
       opacity: 1,
-      delay: 0.3,
+      // delay: 0.2,
     })
     .to('.js-ttl-txts', {
       y: 0,
-      delay: 0.5,
+      // delay: 0.1,
       duration: 0.6,
       // ease: 'circ.inOut',
       ease: 'circ.out',
@@ -144,24 +174,151 @@ class Main {
   }
 
   _scrollAnimation() {
-    const tlScrollAnimation = gsap.timeline({
+    const tlScrollTtl = gsap.timeline({
       scrollTrigger: {
         trigger: '.js-section-02',
         start: 'top 96%',
-        onLeaveBack: () => tlScrollAnimation.reverse(), // 逆再生させる
+        onLeaveBack: () => tlScrollTtl.reverse(), // 逆再生させる
         // markers: true,
       }
     });
-    tlScrollAnimation.to('.js-ttl-txts', {
+    tlScrollTtl.to('.js-ttl-txts', {
       duration: 0.9,
       ease: 'circ.inOut',
       y: '-100%',
     })
+
+    const tlScrollModel01 = gsap.timeline({
+      scrollTrigger: {
+        trigger: '.js-section-02',
+        start: 'top 96%',
+        end: 'bottom bottom',
+        scrub: 1,
+        // markers: true,
+      }
+    });
+    tlScrollModel01.to(this.model.rotation, {
+      // x: radian(32),
+      x: radian(392),
+      // y: radian(220),
+      y: radian(570),
+      duration: 1,
+      ease: 'power4.inOut',
+    })
+    .to(this.model.position, {
+      x: this.viewport.width * 0.12,
+      duration: 1,
+      ease: 'power4.inOut',
+    }, '<')
+    .to(this.model.position, {
+      z: -this.viewport.width * 0.25,
+      duration: 0.4,
+      ease: 'power4.inOut',
+    }, '<')
+    .to(this.model.position, {
+      z: this.viewport.width * 0.25,
+      y: this.viewport.height * 0.1,
+      duration: 0.6,
+      delay: 0.4,
+      ease: 'power4.inOut',
+    }, '<');
+
+
+    const tlScrollModel02 = gsap.timeline({
+      scrollTrigger: {
+        trigger: '.js-section-03',
+        start: 'top bottom',
+        end: 'bottom bottom',
+        scrub: 1,
+        // markers: true,
+      }
+    });
+    tlScrollModel02.to(this.model.rotation, {
+      x: radian(90),
+      y: radian(90),
+      duration: 1,
+      ease: 'power4.inOut',
+    })
+    .to(this.model.position, {
+      x: this.viewport.width * 0.25,
+      y: -this.viewport.height * 0.25,
+      z: 0,
+      duration: 1,
+      ease: 'power4.inOut',
+    }, '<')
+    .to(this.groupChild.rotation, {
+      y: radian(-20),
+      duration: 1.0,
+      ease: 'power4.inOut',
+    }, '<');
+
+
+    const tlScrollModel03 = gsap.timeline({
+      scrollTrigger: {
+        trigger: '.js-section-04',
+        start: 'top bottom',
+        end: 'bottom bottom',
+        scrub: 1,
+        // markers: true,
+      }
+    });
+    tlScrollModel03.to(this.model.rotation, {
+      x: radian(90),
+      y: radian(90),
+      duration: 1,
+      ease: 'expo.inOut',
+    })
+    .to(this.model.position, {
+      x: -this.viewport.width * 0.25,
+      y: -this.viewport.height * 0.25,
+      z: 0,
+      duration: 1,
+      ease: 'power4.inOut',
+    }, '<')
+    .to(this.groupChild.rotation, {
+      // y: radian(740),
+      y: radian(740),
+      duration: 1.0,
+      // delay: 0.2,
+      ease: 'power4.inOut',
+    }, '<');
+
+
+    const tlScrollModel04 = gsap.timeline({
+      scrollTrigger: {
+        trigger: '.js-section-05',
+        start: 'top bottom',
+        end: 'bottom bottom',
+        scrub: 1,
+        // markers: true,
+      }
+    });
+    tlScrollModel04.to(this.model.rotation, {
+      x: 0,
+      y: radian(180),
+      duration: 1,
+      ease: 'power4.inOut',
+    })
+    .to(this.model.position, {
+      x: 0,
+      y: 0,
+      duration: 1,
+      ease: 'power4.inOut',
+    }, '<')
+    .to(this.groupChild.rotation, {
+      y: 0,
+      duration: 1.0,
+      ease: 'power4.inOut',
+    }, '<');
+
+    
   }
 
   _init() {
+    this._initAnimation();
+
     this._setCamera();
-    this._setControlls();
+    // this._setControlls();
     this._setLight();
     this._setEnvTexture();
 
@@ -169,8 +326,8 @@ class Main {
 
     this._addModel();
 
-    this._loadAnimation();
-    this._scrollAnimation();
+    // this._loadAnimation();
+    // this._scrollAnimation();
   }
 
   _update(time) {
@@ -179,7 +336,7 @@ class Main {
 
     //レンダリング
     this.renderer.render(this.scene, this.camera);
-    this.controls.update();
+    // this.controls.update();
     requestAnimationFrame(this._update.bind(this));
 
   }
