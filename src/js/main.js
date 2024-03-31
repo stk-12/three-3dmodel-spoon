@@ -52,6 +52,11 @@ class Main {
     });
     this.lenis.stop();
 
+    this.cursor = {
+      x: 0,
+      y: 0
+    };
+
     this._init();
 
     this._addEvent();
@@ -332,6 +337,13 @@ class Main {
 
   _update(time) {
 
+    const parallaxX = this.cursor.x;
+    const parallaxY = - this.cursor.y;
+
+    this.group.rotation.x += ((parallaxY * 0.1) - this.group.rotation.x) * 0.1;
+    this.group.rotation.y += ((parallaxX * 0.1) - this.group.rotation.y) * 0.1;
+
+
     this.lenis.raf(time);
 
     //レンダリング
@@ -353,6 +365,11 @@ class Main {
     this.camera.updateProjectionMatrix();
   }
 
+  _onMousemove(e) {
+    this.cursor.x = e.clientX / this.viewport.width - 0.5;
+    this.cursor.y = e.clientY / this.viewport.height - 0.5;
+  }
+
   _scrollReset() {
     window.scrollTo(0, 0);
   }
@@ -360,30 +377,9 @@ class Main {
   _addEvent() {
     window.addEventListener("resize", this._onResize.bind(this));
     window.addEventListener("beforeunload", this._scrollReset.bind(this));
+    window.addEventListener("mousemove", this._onMousemove.bind(this));
   }
 
-  _addEventScroll() {
-
-    console.log(this.animations);
-
-    // スクロールとカメラアニメーションの連動
-    window.addEventListener('scroll', () => {
-      const scrollY = window.scrollY; // スクロール量
-      const scrollHeight = document.querySelector('.scroll').clientHeight; // スクロール領域の高さ
-      const viewportHeight = window.innerHeight;
-      const scrollProgress = scrollY / (scrollHeight - viewportHeight); // スクロールの進捗度0~1
-
-      this.animations.forEach(animation => {
-        const animationDuration = animation.duration;
-        const animationTime = scrollProgress * animationDuration;
-        
-        const action = this.mixer.existingAction(animation);
-        action.reset();
-        this.mixer.setTime(animationTime); // アニメーションの時間を設定
-      });
-      this.renderer.render(this.scene, this.camera);
-    });
-  }
 }
 
 new Main();
