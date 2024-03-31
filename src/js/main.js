@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { gsap } from "gsap";
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
@@ -66,14 +67,25 @@ class Main {
     this.controls.enableDamping = true;
   }
 
+  _setEnvTexture() {
+    const rgbeLoader = new RGBELoader();
+    rgbeLoader.setPath('texture/');
+    rgbeLoader.load('room.hdr', (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+
+      // this.scene.background = texture;
+      this.scene.environment = texture;
+    });
+  }
+
   _setLight() {
     const light = new THREE.DirectionalLight(0xffffff, 1.8);
     light.position.set(1, 200, 1);
     this.scene.add(light);
     
-    // helper
-    const directionalLightHelper = new THREE.DirectionalLightHelper(light, 50);
-    this.scene.add(directionalLightHelper);
+    // // helper
+    // const directionalLightHelper = new THREE.DirectionalLightHelper(light, 50);
+    // this.scene.add(directionalLightHelper);
 
 
     const ambLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
@@ -84,41 +96,20 @@ class Main {
   _addModel() {
     this.loader.load('model/spoon.glb', (gltf) => {
       const model = gltf.scene;
-      // this.animations = gltf.animations;
 
-      // this.camera = gltf.cameras[0];
-
-      // if(this.animations && this.animations.length) {
- 
-      //     //Animation Mixerインスタンスを生成
-      //     this.mixer = new THREE.AnimationMixer(model);
-  
-      //     //全てのAnimation Clipに対して
-      //     for (let i = 0; i < this.animations.length; i++) {
-      //         let animation = this.animations[i];
-  
-      //         //Animation Actionを生成
-      //         let action = this.mixer.clipAction(animation) ;
-  
-      //         //ループ設定
-      //         action.setLoop(THREE.LoopOnce); // 1回再生
-      //         // action.setLoop(THREE.LoopRepeat); // ループ再生
-  
-      //         //アニメーションの最後のフレームでアニメーションが終了
-      //         action.clampWhenFinished = true;
-  
-      //         //アニメーションを再生
-      //         action.play();
-      //     }
-            
-      //     this._addEventScroll();
-      // }
+      // モデルに環境マッピングを適用
+      const envMap = this.scene.environment;
+      model.traverse((child) => {
+        if (child.isMesh) {
+          console.log(child);
+          child.material.envMap = envMap;
+          child.material.envMapIntensity = 2.5; // 環境マッピングの強さ 明るさの調整
+        }
+      });
 
       model.scale.set(100.0, 100.0, 100.0);
 
-
       this.scene.add(model);
-
       this._update();
 
 
@@ -127,8 +118,9 @@ class Main {
 
   // _addMesh() {
   //   const geometry = new THREE.BoxGeometry(50, 50, 50);
-  //   const material = new THREE.MeshStandardMaterial({color: 0x444444});
+  //   const material = new THREE.MeshStandardMaterial({color: 0xff0000});
   //   this.mesh = new THREE.Mesh(geometry, material);
+  //   this.mesh.position.set(0, 100, 0);
   //   this.scene.add(this.mesh);
   // }
 
@@ -171,7 +163,10 @@ class Main {
     this._setCamera();
     this._setControlls();
     this._setLight();
+    this._setEnvTexture();
+
     // this._addMesh();
+
     this._addModel();
 
     this._loadAnimation();
