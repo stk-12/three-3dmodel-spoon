@@ -58,6 +58,8 @@ class Main {
       y: 0
     };
 
+    this.isEnd = false;
+
     this._init();
 
     this._addEvent();
@@ -303,6 +305,13 @@ class Main {
         end: 'bottom bottom',
         scrub: 1,
         // markers: true,
+        onUpdate: (self) => {
+          if(self.progress > 0.8) {
+            this.isEnd = true;
+          } else {
+            this.isEnd = false;
+          }
+        }
       }
     });
     tlScrollModel04.to(this.model.rotation, {
@@ -344,11 +353,16 @@ class Main {
 
   _update(time) {
 
-    const parallaxX = this.cursor.x;
-    const parallaxY = - this.cursor.y;
+    let parallaxX = this.cursor.x;
+    let parallaxY = - this.cursor.y;
 
-    this.group.rotation.x += ((parallaxY * 0.1) - this.group.rotation.x) * 0.1;
-    this.group.rotation.y += ((parallaxX * 0.1) - this.group.rotation.y) * 0.1;
+    if(this.isEnd) {
+      this.group.rotation.x += ((parallaxY * 0.5) - this.group.rotation.x) * 0.1;
+      this.group.rotation.y += ((parallaxX * 0.5) - this.group.rotation.y) * 0.1;
+    } else {
+      this.group.rotation.x += ((parallaxY * 0.1) - this.group.rotation.x) * 0.1;
+      this.group.rotation.y += ((parallaxX * 0.1) - this.group.rotation.y) * 0.1;
+    }
 
 
     this.lenis.raf(time);
